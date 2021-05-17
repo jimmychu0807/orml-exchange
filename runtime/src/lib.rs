@@ -6,10 +6,14 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::{Decode, Encode};
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
+
 use sp_std::prelude::*;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
-	ApplyExtrinsicResult, generic, create_runtime_str, impl_opaque_keys, MultiSignature,
+	ApplyExtrinsicResult, generic, create_runtime_str, impl_opaque_keys, MultiSignature, RuntimeDebug,
 	transaction_validity::{TransactionValidity, TransactionSource},
 };
 use sp_runtime::traits::{
@@ -39,6 +43,10 @@ pub use frame_support::{
 };
 use pallet_transaction_payment::CurrencyAdapter;
 
+// orml dependencies
+use orml_currencies::BasicCurrencyAdapter;
+use orml_traits::parameter_type_with_key;
+
 /// Import the template pallet.
 pub use pallet_template;
 
@@ -67,6 +75,17 @@ pub type Hash = sp_core::H256;
 
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
+
+#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum CurrencyId {
+	Native,
+	DOT,
+	KSM,
+	BTC,
+}
+
+pub type Amount = i128;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -366,10 +385,6 @@ impl_runtime_apis! {
 			data: sp_inherents::InherentData,
 		) -> sp_inherents::CheckInherentsResult {
 			data.check_extrinsics(&block)
-		}
-
-		fn random_seed() -> <Block as BlockT>::Hash {
-			RandomnessCollectiveFlip::random_seed().0
 		}
 	}
 
