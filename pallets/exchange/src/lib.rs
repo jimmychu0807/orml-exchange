@@ -13,12 +13,14 @@ mod benchmarking;
 pub mod pallet {
 	use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
 	use frame_system::pallet_prelude::*;
+	use orml_traits::{MultiCurrency, MultiReservableCurrency};
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type Currency: MultiReservableCurrency<Self::AccountId>;
 	}
 
 	#[pallet::pallet]
@@ -28,25 +30,31 @@ pub mod pallet {
 	pub type OrderId = u64;
 	pub type ExecutionId = u64;
 
-	pub enum OrderStatus = {
+	type CurrencyIdOf<T> = <<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::CurrencyId;
+	type BalanceOf<T> = <<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
+
+	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
+	pub enum OrderStatus {
 		PENDING,
 		ALIVE,
 		EXECUTED,
 		CANCELLED,
 		INVALID,
-	};
+	}
 
-	pub enum ExecutionStatus = {
+	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
+	pub enum ExecutionStatus {
 		SUCCEEDED,
 		FAILED,
 	}
 
+	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
 	pub struct Order<T: Config> {
 		owner:      T::AccountId,
-		from_cid:   T::CurrencyId,
-		from_bal:   T::Balance,
-		to_cid:     T::CurrencyId,
-		to_bal:     T::Balance,
+		from_cid:   CurrencyIdOf<T>,
+		from_bal:   BalanceOf<T>,
+		to_cid:     CurrencyIdOf<T>,
+		to_bal:     BalanceOf<T>,
 		status:     OrderStatus,
 		created_at: T::BlockNumber,
 	}
@@ -55,7 +63,7 @@ pub mod pallet {
 	// https://substrate.dev/docs/en/knowledgebase/runtime/storage
 	#[pallet::storage]
 	#[pallet::getter(fn orders)]
-	pub(super) type Orders<T> = StorageMap<_, Blake2_128Concat, OrderId, Order>;
+	pub(super) type Orders<T> = StorageMap<_, Blake2_128Concat, OrderId, Order<T>>;
 
 	// Pallets use events to inform users when important changes are made.
 	// https://substrate.dev/docs/en/knowledgebase/runtime/events
@@ -63,7 +71,7 @@ pub mod pallet {
 	#[pallet::metadata(T::AccountId = "AccountId")]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		OrderSubmitted(T::AccountId, T::CurrencyId, T::Balance, T::CurrencyId, T::Balance),
+		OrderSubmitted(T::AccountId, CurrencyIdOf<T>, BalanceOf<T>, CurrencyIdOf<T>, BalanceOf<T>),
 		OrderTaken(T::AccountId, OrderId),
 		OrderCancelled(T::AccountId, OrderId),
 	}
@@ -83,17 +91,35 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T:Config> Pallet<T> {
 		#[pallet::weight(10_000)]
-		pub fn submit_order(origin: OriginFor<T>, from_currency, to_currency) -> DispatchResult {
+		pub fn submit_order(
+			origin: OriginFor<T>,
+			from_cid: CurrencyIdOf<T>,
+			from_bal: BalanceOf<T>,
+			to_cid: CurrencyIdOf<T>,
+			to_bal: BalanceOf<T>
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			// Emitting event
+			Self::deposit_event(Event::OrderSubmitted(who, from_cid, from_bal, to_cid, to_bal));
 			Ok(())
 		}
 
 		#[pallet::weight(10_000)]
 		pub fn take_order(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			//Emitting event
+			Self::deposit_event(Event::OrderTaken(who, 0));
 			Ok(())
 		}
 
 		#[pallet::weight(10_000)]
 		pub fn cancel_order(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			//Emitting event
+			Self::deposit_event(Event::OrderCancelled(who, 0));
 			Ok(())
 		}
 	}
