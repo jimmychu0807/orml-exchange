@@ -53,6 +53,7 @@ orml-traits = {default-features = false, version = '0.4.1-dev', git = 'https://g
 
 # local dependencies
 pallet-template = {default-features = false, version = '3.0.0', path = '../pallets/template'}
+pallet-exchange = {default-features = false, version = '3.0.0', path = '../pallets/exchange'}
 
 [features]
 default = ['std']
@@ -79,6 +80,7 @@ std = [
 	'orml-traits/std',
 	'pallet-aura/std',
 	'pallet-balances/std',
+	'pallet-exchange/std',
 	'pallet-grandpa/std',
 	'pallet-randomness-collective-flip/std',
 	'pallet-sudo/std',

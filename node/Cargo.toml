@@ -48,6 +48,7 @@ sp-core = {version = '3.0.0', git = 'https://github.com/paritytech/substrate.git
 sp-finality-grandpa = {version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
 sp-inherents = {version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
 sp-runtime = {version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
+sp-timestamp = { version = "3.0.0", git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1' }
 sp-transaction-pool = {version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
 substrate-frame-rpc-system = {version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
 
