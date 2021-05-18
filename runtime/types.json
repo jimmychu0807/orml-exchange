@@ -1,0 +1,24 @@
+{
+  "CurrencyId": "CurrencyIdOf",
+
+  "CurrencyIdOf": {
+    "_enum": ["Native", "DOT", "KSM", "BTC"]
+  },
+
+  "OrderStatus": {
+    "_enum": ["PENDING", "ALIVE", "EXECUTED", "CANCELLED", "INVALID"]
+  },
+
+  "Order": {
+    "owner": "AccountId",
+    "from_cid": "CurrencyIdOf",
+    "from_bal": "BalanceOf",
+    "to_cid": "CurrencyIdOf",
+    "to_bal": "BalanceOf",
+    "status": "OrderStatus",
+    "created_at": "u64"
+  },
+
+  "OrderId": "u64",
+  "ExecutionId": "u64"
+}
