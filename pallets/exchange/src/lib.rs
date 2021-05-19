@@ -17,7 +17,7 @@ pub mod pallet {
 		inherent::Vec,
 	};
 	use frame_system::pallet_prelude::*;
-	use orml_traits::{MultiCurrency, MultiReservableCurrency};
+	use orml_traits::{arithmetic::Zero, MultiCurrency, MultiReservableCurrency};
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
@@ -112,7 +112,10 @@ pub mod pallet {
 	// Errors inform users that something went wrong.
 	#[pallet::error]
 	pub enum Error<T> {
-
+		NextOrderIdOverflow,
+		SameToFromCurrency,
+		OrderFromBalZero,
+		OrderToBalZero,
 	}
 
 	#[pallet::hooks]
@@ -133,11 +136,22 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let order_id = Self::next_order_id();
-			<NextOrderId::<T>>::mutate(|oid| { *oid = *oid + 1; });
+			// CHECK: `from_cid` and `to_cid` must be different
+			ensure!(from_cid != to_cid, <Error::<T>>::SameToFromCurrency);
 
-			// TODO: Reserve user fund here from the order
-			// May need to return error if not enough fund
+			// CHECK: No bal is zero
+			ensure!(from_bal > Zero::zero(), <Error::<T>>::OrderFromBalZero);
+			ensure!(to_bal > Zero::zero(), <Error::<T>>::OrderToBalZero);
+
+			let order_id = Self::next_order_id();
+
+			// CHECK: Arithmetic should use `check_*` to avoid overflow and panic
+			<NextOrderId::<T>>::try_mutate(|oid| -> DispatchResult {
+				*oid = oid.checked_add(1).ok_or(<Error::<T>>::NextOrderIdOverflow)?;
+				Ok(())
+			})?;
+
+			T::Currency::reserve(from_cid, &who, from_bal)?;
 
 			// Write to Orders
 			<Orders::<T>>::insert(order_id, Order::new_alive_order(&who, from_cid, from_bal, to_cid, to_bal));
