@@ -202,7 +202,7 @@ pub mod pallet {
 								order.executed_at = Some(<frame_system::Pallet<T>>::block_number());
 								order.status = OrderStatus::Executed;
 								TransactionOutcome::Commit(Ok(()))
-							})
+							}) // -- end of `with_transaction()` --
 						} else {
 							Err(Error::<T>::NotEnoughBalance)
 						}
