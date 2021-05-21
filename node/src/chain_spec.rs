@@ -1,6 +1,6 @@
 use sp_core::{Pair, Public, sr25519};
 use node_template_runtime::{
-	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
+	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, TokensConfig,
 	SudoConfig, SystemConfig, WASM_BINARY, Signature
 };
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -153,5 +153,8 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			key: root_key,
 		},
+		orml_tokens: TokensConfig {
+			endowed_accounts: Default::default(),
+		}
 	}
 }

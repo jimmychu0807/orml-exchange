@@ -11,9 +11,13 @@ mod benchmarking;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
+	use frame_support::{
+		pallet_prelude::*,
+		dispatch::DispatchResult,
+		inherent::Vec,
+	};
 	use frame_system::pallet_prelude::*;
-	use orml_traits::{MultiCurrency, MultiReservableCurrency};
+	use orml_traits::{arithmetic::Zero, MultiCurrency, MultiReservableCurrency};
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
@@ -30,22 +34,23 @@ pub mod pallet {
 	pub type OrderId = u64;
 	pub type ExecutionId = u64;
 
+	type AccountOf<T> = <T as frame_system::Config>::AccountId;
 	type CurrencyIdOf<T> = <<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::CurrencyId;
 	type BalanceOf<T> = <<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
 	pub enum OrderStatus {
-		PENDING,
-		ALIVE,
-		EXECUTED,
-		CANCELLED,
-		INVALID,
+		Pending,
+		Alive,
+		Executed,
+		Cancelled,
+		Invalid,
 	}
 
 	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
 	pub enum ExecutionStatus {
-		SUCCEEDED,
-		FAILED,
+		Succeeded,
+		Failed,
 	}
 
 	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
@@ -59,11 +64,39 @@ pub mod pallet {
 		created_at: T::BlockNumber,
 	}
 
+	impl<T: Config> Order<T> {
+		pub fn new_alive_order(
+			owner: 			&T::AccountId,
+			from_cid: 	CurrencyIdOf<T>,
+			from_bal:   BalanceOf<T>,
+			to_cid:     CurrencyIdOf<T>,
+			to_bal:     BalanceOf<T>,
+		) -> Self {
+			Self {
+				from_cid, from_bal, to_cid, to_bal,
+				owner: owner.clone(),
+				status: OrderStatus::Alive,
+				created_at: <frame_system::Pallet<T>>::block_number(),
+			}
+		}
+	}
+
 	// The pallet's runtime storage items.
 	// https://substrate.dev/docs/en/knowledgebase/runtime/storage
 	#[pallet::storage]
 	#[pallet::getter(fn orders)]
 	pub(super) type Orders<T> = StorageMap<_, Blake2_128Concat, OrderId, Order<T>>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn user_orders)]
+	pub(super) type UserOrders<T> = StorageMap<_, Blake2_128Concat, AccountOf<T>, Vec<OrderId>>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn next_order_id)]
+	pub(super) type NextOrderId<T> = StorageValue<_, OrderId, ValueQuery, DefaultNextOrderId>;
+
+	#[pallet::type_value]
+	pub(super) fn DefaultNextOrderId() -> OrderId { 0 }
 
 	// Pallets use events to inform users when important changes are made.
 	// https://substrate.dev/docs/en/knowledgebase/runtime/events
@@ -79,7 +112,13 @@ pub mod pallet {
 	// Errors inform users that something went wrong.
 	#[pallet::error]
 	pub enum Error<T> {
-
+		NextOrderIdOverflow,
+		NotOrderOwner,
+		OrderCannotBeCancelled,
+		OrderFromBalZero,
+		OrderNotExist,
+		OrderToBalZero,
+		SameToFromCurrency,
 	}
 
 	#[pallet::hooks]
@@ -89,7 +128,7 @@ pub mod pallet {
 	// These functions materialize as "extrinsics", which are often compared to transactions.
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 	#[pallet::call]
-	impl<T:Config> Pallet<T> {
+	impl<T: Config> Pallet<T> {
 		#[pallet::weight(10_000)]
 		pub fn submit_order(
 			origin: OriginFor<T>,
@@ -99,6 +138,29 @@ pub mod pallet {
 			to_bal: BalanceOf<T>
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			// CHECK: `from_cid` and `to_cid` must be different
+			ensure!(from_cid != to_cid, <Error::<T>>::SameToFromCurrency);
+
+			// CHECK: No bal is zero
+			ensure!(from_bal > Zero::zero(), <Error::<T>>::OrderFromBalZero);
+			ensure!(to_bal > Zero::zero(), <Error::<T>>::OrderToBalZero);
+
+			let order_id = Self::next_order_id();
+
+			// CHECK: Arithmetic should use `check_*` to avoid overflow and panic
+			<NextOrderId::<T>>::try_mutate(|oid| -> DispatchResult {
+				*oid = oid.checked_add(1).ok_or(<Error::<T>>::NextOrderIdOverflow)?;
+				Ok(())
+			})?;
+
+			T::Currency::reserve(from_cid, &who, from_bal)?;
+
+			// Write to Orders
+			<Orders::<T>>::insert(order_id, Order::new_alive_order(&who, from_cid, from_bal, to_cid, to_bal));
+
+			// Write to UserOrders
+			<UserOrders::<T>>::append(&who, order_id);
 
 			// Emitting event
 			Self::deposit_event(Event::OrderSubmitted(who, from_cid, from_bal, to_cid, to_bal));
@@ -115,12 +177,45 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(10_000)]
-		pub fn cancel_order(origin: OriginFor<T>) -> DispatchResult {
+		pub fn cancel_order(origin: OriginFor<T>, oid: OrderId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			// CHECK: it is the owner of the order
+			ensure!(Self::order_owned_by(&oid, &who), <Error::<T>>::NotOrderOwner);
+
+			// CHECK: the order is indeed existed && status is either PENDING/ALIVE, if not return error.
+			<Orders::<T>>::try_mutate(&oid, |order_opt| {
+				if let Some(order) = order_opt {
+					if let OrderStatus::Pending | OrderStatus::Alive = order.status {
+						// DO: set the status of the order to cancelled
+						order.status = OrderStatus::Cancelled;
+
+						// DO: unreserve the fund for the user
+						T::Currency::unreserve(order.from_cid, &who, order.from_bal);
+
+						Ok(())
+					} else {
+						Err(<Error::<T>>::OrderCannotBeCancelled)
+					}
+				} else {
+					Err(<Error::<T>>::OrderNotExist)
+				}
+			})?;
+
 			//Emitting event
-			Self::deposit_event(Event::OrderCancelled(who, 0));
+			Self::deposit_event(Event::OrderCancelled(who, oid));
 			Ok(())
 		}
+	} // -- End of `#[pallet::call]` --
+
+	// Other functions defined here
+	impl<T: Config> Pallet<T> {
+		pub fn order_owned_by(oid: &OrderId, who: &T::AccountId) -> bool {
+			match <UserOrders::<T>>::get(who) {
+				Some(vec) => vec.contains(oid),
+				None => false
+			}
+		}
+
 	}
 }

@@ -293,18 +293,6 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
-parameter_types! {
-	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Native;
-}
-
-impl orml_currencies::Config for Runtime {
-	type Event = Event;
-	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-	type GetNativeCurrencyId = GetNativeCurrencyId;
-	type WeightInfo = ();
-}
-
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_id: CurrencyId| -> Balance {
 		Default::default()
@@ -322,6 +310,23 @@ impl orml_tokens::Config for Runtime {
 	type OnDust = ();
 	type MaxLocks = MaxLocks;
 	type WeightInfo = ();
+}
+
+parameter_types! {
+	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Native;
+}
+
+impl orml_currencies::Config for Runtime {
+	type Event = Event;
+	type MultiCurrency = Tokens;
+	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
+	type GetNativeCurrencyId = GetNativeCurrencyId;
+	type WeightInfo = ();
+}
+
+impl pallet_exchange::Config for Runtime {
+	type Event = Event;
+	type Currency = Currencies;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -342,8 +347,9 @@ construct_runtime!(
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 
-		Currencies: orml_currencies::{Pallet, Call, Event<T>},
 		Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>},
+		Currencies: orml_currencies::{Pallet, Call, Event<T>},
+		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
