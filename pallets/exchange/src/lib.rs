@@ -113,9 +113,12 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		NextOrderIdOverflow,
-		SameToFromCurrency,
+		NotOrderOwner,
+		OrderCannotBeCancelled,
 		OrderFromBalZero,
+		OrderNotExist,
 		OrderToBalZero,
+		SameToFromCurrency,
 	}
 
 	#[pallet::hooks]
@@ -174,12 +177,45 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(10_000)]
-		pub fn cancel_order(origin: OriginFor<T>) -> DispatchResult {
+		pub fn cancel_order(origin: OriginFor<T>, oid: OrderId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			// CHECK: it is the owner of the order
+			ensure!(Self::order_owned_by(&oid, &who), <Error::<T>>::NotOrderOwner);
+
+			// CHECK: the order is indeed existed && status is either PENDING/ALIVE, if not return error.
+			<Orders::<T>>::try_mutate(&oid, |order_opt| {
+				if let Some(order) = order_opt {
+					if let OrderStatus::Pending | OrderStatus::Alive = order.status {
+						// DO: set the status of the order to cancelled
+						order.status = OrderStatus::Cancelled;
+
+						// DO: unreserve the fund for the user
+						T::Currency::unreserve(order.from_cid, &who, order.from_bal);
+
+						Ok(())
+					} else {
+						Err(<Error::<T>>::OrderCannotBeCancelled)
+					}
+				} else {
+					Err(<Error::<T>>::OrderNotExist)
+				}
+			})?;
+
 			//Emitting event
-			Self::deposit_event(Event::OrderCancelled(who, 0));
+			Self::deposit_event(Event::OrderCancelled(who, oid));
 			Ok(())
 		}
+	} // -- End of `#[pallet::call]` --
+
+	// Other functions defined here
+	impl<T: Config> Pallet<T> {
+		pub fn order_owned_by(oid: &OrderId, who: &T::AccountId) -> bool {
+			match <UserOrders::<T>>::get(who) {
+				Some(vec) => vec.contains(oid),
+				None => false
+			}
+		}
+
 	}
 }
