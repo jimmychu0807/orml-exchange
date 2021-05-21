@@ -18,7 +18,10 @@ pub mod pallet {
 		storage::{with_transaction, TransactionOutcome},
 	};
 	use frame_system::pallet_prelude::*;
-	use orml_traits::{arithmetic::Zero, MultiCurrency, MultiReservableCurrency};
+	use orml_traits::{
+		MultiCurrency, MultiReservableCurrency, BalanceStatus,
+		arithmetic::Zero,
+	};
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
@@ -184,11 +187,8 @@ pub mod pallet {
 
 							// the actual transaction
 							with_transaction(|| {
-								// unreserve user A fund
-								T::Currency::unreserve(order.from_cid, &order.owner, order.from_bal);
-
-								// transfer from user A (from_cid, from_bal) to user B
-								if let Err(_e) = T::Currency::transfer(order.from_cid, &order.owner, &who, order.from_bal) {
+								// repatriate from user A (from_cid, from_bal) to user B
+								if let Err(_e) = T::Currency::repatriate_reserved(order.from_cid, &order.owner, &who, order.from_bal, BalanceStatus::Reserved) {
 									return TransactionOutcome::Rollback(Err(Error::<T>::CannotTransferOnFrom))
 								}
 
