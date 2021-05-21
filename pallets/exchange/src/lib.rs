@@ -15,6 +15,7 @@ pub mod pallet {
 		pallet_prelude::*,
 		dispatch::DispatchResult,
 		inherent::Vec,
+		storage::{with_transaction, TransactionOutcome},
 	};
 	use frame_system::pallet_prelude::*;
 	use orml_traits::{arithmetic::Zero, MultiCurrency, MultiReservableCurrency};
@@ -32,7 +33,6 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	pub type OrderId = u64;
-	pub type ExecutionId = u64;
 
 	type AccountOf<T> = <T as frame_system::Config>::AccountId;
 	type CurrencyIdOf<T> = <<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::CurrencyId;
@@ -48,12 +48,6 @@ pub mod pallet {
 	}
 
 	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
-	pub enum ExecutionStatus {
-		Succeeded,
-		Failed,
-	}
-
-	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
 	pub struct Order<T: Config> {
 		owner:      T::AccountId,
 		from_cid:   CurrencyIdOf<T>,
@@ -61,7 +55,10 @@ pub mod pallet {
 		to_cid:     CurrencyIdOf<T>,
 		to_bal:     BalanceOf<T>,
 		status:     OrderStatus,
+		executed_with: Option<T::AccountId>,
 		created_at: T::BlockNumber,
+		cancelled_at: Option<T::BlockNumber>,
+		executed_at: Option<T::BlockNumber>,
 	}
 
 	impl<T: Config> Order<T> {
@@ -76,7 +73,10 @@ pub mod pallet {
 				from_cid, from_bal, to_cid, to_bal,
 				owner: owner.clone(),
 				status: OrderStatus::Alive,
+				executed_with: None,
 				created_at: <frame_system::Pallet<T>>::block_number(),
+				cancelled_at: None,
+				executed_at: None,
 			}
 		}
 	}
@@ -112,10 +112,14 @@ pub mod pallet {
 	// Errors inform users that something went wrong.
 	#[pallet::error]
 	pub enum Error<T> {
+		CannotTransferOnFrom,
+		CannotTransferOnTo,
 		NextOrderIdOverflow,
+		NotEnoughBalance,
 		NotOrderOwner,
 		OrderCannotBeCancelled,
 		OrderFromBalZero,
+		OrderNotAvailableToExecute,
 		OrderNotExist,
 		OrderToBalZero,
 		SameToFromCurrency,
@@ -154,7 +158,7 @@ pub mod pallet {
 				Ok(())
 			})?;
 
-			T::Currency::reserve(from_cid, &who, from_bal)?;
+			T::Currency::reserve(from_cid, &who, from_bal).map_err(|_| <Error::<T>>::NotEnoughBalance)?;
 
 			// Write to Orders
 			<Orders::<T>>::insert(order_id, Order::new_alive_order(&who, from_cid, from_bal, to_cid, to_bal));
@@ -168,11 +172,50 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(10_000)]
-		pub fn take_order(origin: OriginFor<T>) -> DispatchResult {
+		pub fn take_order(origin: OriginFor<T>, oid: OrderId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			<Orders::<T>>::try_mutate(oid, |order_opt| {
+				if let Some(order) = order_opt {
+					// CHECK: order_status
+					if let OrderStatus::Alive = order.status {
+						// CHECK: User has what the order to_cid and to_bal
+						if T::Currency::free_balance(order.to_cid, &who) >= order.to_bal {
+
+							// the actual transaction
+							with_transaction(|| {
+								// unreserve user A fund
+								T::Currency::unreserve(order.from_cid, &order.owner, order.from_bal);
+
+								// transfer from user A (from_cid, from_bal) to user B
+								if let Err(_e) = T::Currency::transfer(order.from_cid, &order.owner, &who, order.from_bal) {
+									return TransactionOutcome::Rollback(Err(Error::<T>::CannotTransferOnFrom))
+								}
+
+								// transfer from user B (to_cid, to_bal) to user A
+								if let Err(_e) = T::Currency::transfer(order.to_cid, &who, &order.owner, order.to_bal) {
+									return TransactionOutcome::Rollback(Err(Error::<T>::CannotTransferOnTo))
+								}
+
+								// update storage
+								order.executed_with = Some(who.clone());
+								order.executed_at = Some(<frame_system::Pallet<T>>::block_number());
+								order.status = OrderStatus::Executed;
+								TransactionOutcome::Commit(Ok(()))
+							})
+						} else {
+							Err(Error::<T>::NotEnoughBalance)
+						}
+					} else {
+						Err(Error::<T>::OrderNotAvailableToExecute)
+					}
+				} else {
+					Err(<Error::<T>>::OrderNotExist)
+				}
+			})?;
+
 			//Emitting event
-			Self::deposit_event(Event::OrderTaken(who, 0));
+			Self::deposit_event(Event::OrderTaken(who, oid));
 			Ok(())
 		}
 
@@ -189,6 +232,7 @@ pub mod pallet {
 					if let OrderStatus::Pending | OrderStatus::Alive = order.status {
 						// DO: set the status of the order to cancelled
 						order.status = OrderStatus::Cancelled;
+						order.cancelled_at = Some(<frame_system::Pallet<T>>::block_number());
 
 						// DO: unreserve the fund for the user
 						T::Currency::unreserve(order.from_cid, &who, order.from_bal);
