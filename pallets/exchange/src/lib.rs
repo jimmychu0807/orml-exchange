@@ -9,6 +9,9 @@ pub use pallet::*;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
+#[cfg(test)]
+mod tests;
+
 #[frame_support::pallet]
 pub mod pallet {
 	use frame_support::{
@@ -179,38 +182,36 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			<Orders::<T>>::try_mutate(oid, |order_opt| {
-				if let Some(order) = order_opt {
-					// CHECK: order_status
-					if let OrderStatus::Alive = order.status {
-						// CHECK: User has what the order to_cid and to_bal
-						if T::Currency::free_balance(order.to_cid, &who) >= order.to_bal {
+				let order = order_opt.as_mut().ok_or(<Error::<T>>::OrderNotExist)?;
 
-							// the actual transaction
-							with_transaction(|| {
-								// repatriate from user A (from_cid, from_bal) to user B
-								if let Err(_e) = T::Currency::repatriate_reserved(order.from_cid, &order.owner, &who, order.from_bal, BalanceStatus::Reserved) {
-									return TransactionOutcome::Rollback(Err(Error::<T>::CannotTransferOnFrom))
-								}
+				// CHECK: order_status
+				if let OrderStatus::Alive = order.status {
+					// CHECK: User has what the order to_cid and to_bal
+					if T::Currency::free_balance(order.to_cid, &who) >= order.to_bal {
 
-								// transfer from user B (to_cid, to_bal) to user A
-								if let Err(_e) = T::Currency::transfer(order.to_cid, &who, &order.owner, order.to_bal) {
-									return TransactionOutcome::Rollback(Err(Error::<T>::CannotTransferOnTo))
-								}
+						// the actual transaction
+						with_transaction(|| {
+							// repatriate from user A (from_cid, from_bal) to user B
+							if let Err(_e) = T::Currency::repatriate_reserved(order.from_cid, &order.owner, &who, order.from_bal, BalanceStatus::Reserved) {
+								return TransactionOutcome::Rollback(Err(Error::<T>::CannotTransferOnFrom))
+							}
 
-								// update storage
-								order.executed_with = Some(who.clone());
-								order.executed_at = Some(<frame_system::Pallet<T>>::block_number());
-								order.status = OrderStatus::Executed;
-								TransactionOutcome::Commit(Ok(()))
-							}) // -- end of `with_transaction()` --
-						} else {
-							Err(Error::<T>::NotEnoughBalance)
-						}
+							// transfer from user B (to_cid, to_bal) to user A
+							if let Err(_e) = T::Currency::transfer(order.to_cid, &who, &order.owner, order.to_bal) {
+								return TransactionOutcome::Rollback(Err(Error::<T>::CannotTransferOnTo))
+							}
+
+							// update storage
+							order.executed_with = Some(who.clone());
+							order.executed_at = Some(<frame_system::Pallet<T>>::block_number());
+							order.status = OrderStatus::Executed;
+							TransactionOutcome::Commit(Ok(()))
+						}) // -- end of `with_transaction()` --
 					} else {
-						Err(Error::<T>::OrderNotAvailableToExecute)
+						Err(Error::<T>::NotEnoughBalance)
 					}
 				} else {
-					Err(<Error::<T>>::OrderNotExist)
+					Err(Error::<T>::OrderNotAvailableToExecute)
 				}
 			})?;
 
