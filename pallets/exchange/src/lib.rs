@@ -124,10 +124,9 @@ pub mod pallet {
 		NotEnoughBalance,
 		NotOrderOwner,
 		OrderCannotBeCancelled,
-		OrderFromBalZero,
 		OrderNotAvailableToExecute,
 		OrderNotExist,
-		OrderToBalZero,
+		OrderWithZeroBal,
 		SameToFromCurrency,
 	}
 
@@ -153,8 +152,7 @@ pub mod pallet {
 			ensure!(from_cid != to_cid, <Error::<T>>::SameToFromCurrency);
 
 			// CHECK: No bal is zero
-			ensure!(from_bal > Zero::zero(), <Error::<T>>::OrderFromBalZero);
-			ensure!(to_bal > Zero::zero(), <Error::<T>>::OrderToBalZero);
+			ensure!(from_bal > Zero::zero() && to_bal > Zero::zero(), <Error::<T>>::OrderWithZeroBal);
 
 			let order_id = Self::next_order_id();
 

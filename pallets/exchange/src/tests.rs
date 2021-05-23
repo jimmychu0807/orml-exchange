@@ -1,14 +1,22 @@
-use crate as pallet_exchange;
+use crate::{self as pallet_exchange, Error};
+use crate::tests::sp_api_hidden_includes_construct_runtime::hidden_include::traits::GenesisBuild;
+
 use sp_core::H256;
 use frame_system::{mocking};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Zero}, testing::Header,
 };
 use frame_support::{
+	assert_noop, assert_ok,
 	parameter_types,
 };
 use orml_currencies::BasicCurrencyAdapter;
-use orml_traits::parameter_type_with_key;
+use orml_traits::{
+	MultiCurrency,
+	parameter_type_with_key
+};
+
+// --- Constructing the mock runtime ---
 
 type UncheckedExtrinsic = mocking::MockUncheckedExtrinsic<TestRuntime>;
 type AccountId = u64;
@@ -21,8 +29,9 @@ type CurrencyId = u128;
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 
+pub const NATIVE: CurrencyId = 0;
 pub const DOT: CurrencyId = 1;
-pub const BTC: CurrencyId = 3;
+pub const BTC: CurrencyId = 2;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -122,46 +131,94 @@ frame_support::construct_runtime!(
 	}
 );
 
+// --- Finish constructing the mock runtime ---
+
 // Build genesis storage according to the mock runtime.
-// pub fn new_test_ext() -> sp_io::TestExternalities {
-// 	frame_system::GenesisConfig::default().build_storage::<TestRuntime>().unwrap().into()
-// 	pallet_balances::GenesisConfig::default().build_storage().unwrap().into()
-// }
+pub const ENDOWED_AMT: u128 = 1000;
 
-pub struct ExtBuilder {
-  // endowed_accounts: Vec<(AccountId, CurrencyId, Balance)>,
-  balances: Vec<(AccountId, Balance)>,
+pub fn new_test_ext() -> sp_io::TestExternalities {
+	let mut t = frame_system::GenesisConfig::default().build_storage::<TestRuntime>().unwrap();
+
+	orml_tokens::GenesisConfig::<TestRuntime> {
+		endowed_accounts: vec![
+			(ALICE, NATIVE, ENDOWED_AMT),
+			(ALICE, DOT, ENDOWED_AMT),
+			(BOB, BTC, ENDOWED_AMT),
+		]
+	}.assimilate_storage(&mut t).unwrap();
+
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| System::set_block_number(1));
+	ext
 }
 
-impl Default for ExtBuilder {
-  fn default() -> Self {
-    Self {
-      // endowed_accounts: vec![
-      //   (ALICE, DOT, 1000_000_000_000_000u128),
-      //   (BOB, DOT, 1000_000_000_000_000u128),
-      //   (ALICE, BTC, 1000_000_000_000_000u128),
-      //   (BOB, BTC, 1000_000_000_000_000u128),
-      // ],
-      balances: vec![]
-    }
-  }
+fn events() -> Vec<Event> {
+	let evt = System::events()
+		.into_iter()
+		.map(|evt| evt.event)
+		.collect::<Vec<_>>();
+
+	System::reset_events();
+	evt
 }
 
-impl ExtBuilder {
-  pub fn build(self) -> sp_io::TestExternalities {
-    let mut t = frame_system::GenesisConfig::default()
-      .build_storage::<TestRuntime>()
-      .unwrap();
+fn last_event() -> Event {
+	events().pop().expect("Should have one event")
+}
 
-    // orml_tokens::GenesisConfig::<TestRuntime> {
-    //   endowed_accounts: self.endowed_accounts,
-    // }
-    pallet_balances::GenesisConfig::<TestRuntime> {
-      balances: vec![],
-    }
-    .assimilate_storage(&mut t)
-    .unwrap();
+// -- actual test cases --
 
-    t.into()
-  }
+#[test]
+fn test_submit_order_should_fail() {
+	new_test_ext().execute_with(|| {
+		// Test `Error::<T>::SameToFromCurrency`
+		assert_noop!(
+			Exchange::submit_order(Origin::signed(ALICE), DOT, 1, DOT, 2),
+			Error::<TestRuntime>::SameToFromCurrency
+		);
+
+		// Test `Error::<T>::OrderWithZeroBal`
+		assert_noop!(
+			Exchange::submit_order(Origin::signed(ALICE), DOT, 1, BTC, 0),
+			Error::<TestRuntime>::OrderWithZeroBal
+		);
+
+		// Test `Error::<T>::OrderWithZeroBal`
+		assert_noop!(
+			Exchange::submit_order(Origin::signed(ALICE), DOT, 0, BTC, 1),
+			Error::<TestRuntime>::OrderWithZeroBal
+		);
+
+		// Test `Error::<T>::NotEnoughBalance`
+		// assert_noop!(
+		// 	Exchange::submit_order(Origin::signed(ALICE), BTC, 1, DOT, 1),
+		// 	Error::<TestRuntime>::NotEnoughBalance
+		// );
+	});
+}
+
+#[test]
+fn test_submit_order_should_succeed() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(Exchange::submit_order(Origin::signed(ALICE), DOT, 2, BTC, 1));
+		assert_eq!(Tokens::free_balance(DOT, &ALICE), ENDOWED_AMT - 2);
+		assert_eq!(Tokens::free_balance(BTC, &ALICE), 0);
+
+		assert_eq!(
+			last_event(),
+			Event::pallet_exchange(
+				crate::Event::OrderSubmitted(ALICE, DOT, 2, BTC, 1)
+			)
+		);
+	});
+}
+
+#[test]
+fn test_cancel_order() {
+
+}
+
+#[test]
+fn test_take_order() {
+
 }
