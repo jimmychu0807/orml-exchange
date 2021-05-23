@@ -55,16 +55,16 @@ pub mod pallet {
 
 	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
 	pub struct Order<T: Config> {
-		owner:      T::AccountId,
-		from_cid:   CurrencyIdOf<T>,
-		from_bal:   BalanceOf<T>,
-		to_cid:     CurrencyIdOf<T>,
-		to_bal:     BalanceOf<T>,
-		status:     OrderStatus,
-		executed_with: Option<T::AccountId>,
-		created_at: T::BlockNumber,
-		cancelled_at: Option<T::BlockNumber>,
-		executed_at: Option<T::BlockNumber>,
+		pub owner:      T::AccountId,
+		pub from_cid:   CurrencyIdOf<T>,
+		pub from_bal:   BalanceOf<T>,
+		pub to_cid:     CurrencyIdOf<T>,
+		pub to_bal:     BalanceOf<T>,
+		pub status:     OrderStatus,
+		pub executed_with: Option<T::AccountId>,
+		pub created_at: T::BlockNumber,
+		pub cancelled_at: Option<T::BlockNumber>,
+		pub executed_at: Option<T::BlockNumber>,
 	}
 
 	impl<T: Config> Order<T> {
@@ -190,7 +190,7 @@ pub mod pallet {
 						// the actual transaction
 						with_transaction(|| {
 							// repatriate from user A (from_cid, from_bal) to user B
-							if let Err(_e) = T::Currency::repatriate_reserved(order.from_cid, &order.owner, &who, order.from_bal, BalanceStatus::Reserved) {
+							if let Err(_e) = T::Currency::repatriate_reserved(order.from_cid, &order.owner, &who, order.from_bal, BalanceStatus::Free) {
 								return TransactionOutcome::Rollback(Err(Error::<T>::CannotTransferOnFrom))
 							}
 
