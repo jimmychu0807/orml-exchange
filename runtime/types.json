@@ -29,15 +29,12 @@
       "to_cid": "CurrencyId",
       "to_bal": "Balance",
       "status": "OrderStatus",
-      "created_at": "BlockNumber"
+      "executed_with": "Option<AccountId>",
+      "created_at": "BlockNumber",
+      "cancelled_at": "Option<BlockNumber>",
+      "executed_at": "Option<BlockNumber>"
     },
 
-    "OrderId": "u64",
-
-    "ExecutionStatus": {
-      "_enum": ["Succeeded", "Failed"]
-    },
-
-    "ExecutionId": "u64"
+    "OrderId": "u64"
   }
 }

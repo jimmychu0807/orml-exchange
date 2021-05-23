@@ -1,7 +1,7 @@
 use sp_core::{Pair, Public, sr25519};
 use node_template_runtime::{
 	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, TokensConfig,
-	SudoConfig, SystemConfig, WASM_BINARY, Signature
+	SudoConfig, SystemConfig, WASM_BINARY, Signature, CurrencyId,
 };
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
@@ -154,7 +154,8 @@ fn testnet_genesis(
 			key: root_key,
 		},
 		orml_tokens: TokensConfig {
-			endowed_accounts: Default::default(),
+			// Prefund with KSM
+			endowed_accounts: endowed_accounts.iter().cloned().map(|acc| (acc, CurrencyId::KSM, 1 << 60)).collect(),
 		}
 	}
 }
