@@ -50,6 +50,8 @@ sp-version = {default-features = false, version = '3.0.0', git = 'https://github
 orml-currencies = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', branch = 'master'}
 orml-tokens = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', branch = 'master'}
 orml-traits = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', branch = 'master'}
+# orml-traits = {default-features = false, version = '0.4.1-dev', path = '../pallets/orml-traits' }
+
 
 # local dependencies
 pallet-template = {default-features = false, version = '3.0.0', path = '../pallets/template'}
