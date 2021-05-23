@@ -275,6 +275,13 @@ fn test_cancel_order() {
 				crate::Event::OrderCancelled(ALICE, 0)
 			)
 		);
+
+		// Cannot cancel executed order
+		assert_noop!(
+			Exchange::cancel_order(Origin::signed(ALICE), 0),
+			Error::<TestRuntime>::OrderCannotBeCancelled
+		);
+
 	});
 }
 
@@ -324,6 +331,12 @@ fn test_take_order() {
 			Event::pallet_exchange(
 				crate::Event::OrderTaken(BOB, 0)
 			)
+		);
+
+		// Cannot cancel executed order
+		assert_noop!(
+			Exchange::cancel_order(Origin::signed(ALICE), 0),
+			Error::<TestRuntime>::OrderCannotBeCancelled
 		);
 	});
 }
