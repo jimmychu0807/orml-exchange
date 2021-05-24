@@ -28,15 +28,13 @@ sp-core = {default-features = false, version = '3.0.0', git = 'https://github.co
 sp-io = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
 sp-runtime = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
 # orml dependencies
-orml-currencies = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', branch = 'master'}
-orml-tokens = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', branch = 'master'}
-orml-traits = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', branch = 'master'}
-# orml-traits = {default-features = false, version = '0.4.1-dev', path = '../orml-traits' }
+orml-currencies = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', rev = 'cfe19133f02dac83dd6652473f9981852c02493f'}
+orml-tokens = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', rev = 'cfe19133f02dac83dd6652473f9981852c02493f'}
+orml-traits = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', rev = 'cfe19133f02dac83dd6652473f9981852c02493f'}
 
 
 [features]
 default = ['std']
-runtime-benchmarks = ['frame-benchmarking']
 std = [
 	'codec/std',
 	'frame-support/std',
