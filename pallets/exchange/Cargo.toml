@@ -17,20 +17,20 @@ targets = ['x86_64-unknown-linux-gnu']
 codec = {default-features = false, features = ['derive'], package = 'parity-scale-codec', version = '2.0.0'}
 
 # Substrate dependencies
-frame-benchmarking = {default-features = false, optional = true, version = '3.1.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
-frame-support = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
-frame-system = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
-orml-traits = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', rev = 'cfe19133f02dac83dd6652473f9981852c02493f' }
-pallet-balances = { default-features = false, version = "3.0.0", git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1' }
+frame-benchmarking = {default-features = false, optional = true, version = '3.1.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.4'}
+frame-support = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.4'}
+frame-system = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.4'}
+pallet-balances = { default-features = false, version = "3.0.0", git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.4' }
+orml-traits = {default-features = false, git = 'https://github.com/jimmychu0807/open-runtime-module-library', tag = 'polkadot/v0.9.4' }
 
 [dev-dependencies]
 serde = '1.0.119'
-sp-core = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
-sp-io = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
-sp-runtime = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.1'}
+sp-core = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.4'}
+sp-io = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.4'}
+sp-runtime = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.4'}
 # orml dependencies
-orml-currencies = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', rev = 'cfe19133f02dac83dd6652473f9981852c02493f'}
-orml-tokens = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', rev = 'cfe19133f02dac83dd6652473f9981852c02493f'}
+orml-currencies = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/jimmychu0807/open-runtime-module-library', tag = 'polkadot/v0.9.4' }
+orml-tokens = {default-features = false, version = '0.4.1-dev', git = 'https://github.com/jimmychu0807/open-runtime-module-library', tag = 'polkadot/v0.9.4' }
 
 
 [features]
