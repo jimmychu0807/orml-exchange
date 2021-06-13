@@ -35,6 +35,42 @@
       "executed_at": "Option<BlockNumber>"
     },
 
-    "OrderId": "u64"
+    "OrderId": "u64",
+
+    "ClassId": "u64",
+    "TokenId": "u64",
+
+    "ItemType": {
+      "_enum": ["Weapon", "HeadGear", "Armor", "Shoe"]
+    },
+
+    "ItemClassData": {
+      "item_type": "ItemType",
+      "info": "Vec<u8>"
+    },
+
+    "ItemTokenData": {
+      "name": "Vec<u8>",
+      "attack": "u64",
+      "defense": "u64",
+      "speed": "u64",
+      "dexterity": "u64"
+    },
+
+    "MaxClassMetadata": 1024,
+    "MaxTokenMetadata": 1024,
+
+    "ClassInfoOf": {
+      "metadata": "BoundedVec<u8, MaxClassMetadata>",
+      "total_issuance": "TokenId",
+      "owner": "AccountId",
+      "data": "ItemClassData"
+    },
+
+    "TokenInfoOf": {
+      "metadata": "BoundedVec<u8, MaxTokenMetadata>",
+      "owner": "AccountId",
+      "data": "ItemTokenData"
+    }
   }
 }

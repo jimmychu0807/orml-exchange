@@ -3732,6 +3732,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "orml-currencies",
+ "orml-nft",
  "orml-tokens",
  "orml-traits",
  "pallet-aura",
@@ -3919,6 +3920,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-nft"
+version = "0.4.1-dev"
+source = "git+https://github.com/jimmychu0807/open-runtime-module-library?tag=polkadot/v0.9.4#7cd2c10d2e9ea44015fdc2ab2d029c7695dac91a"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "max-encoded-len",
+ "parity-scale-codec",
+ "serde",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
 source = "git+https://github.com/jimmychu0807/open-runtime-module-library?tag=polkadot/v0.9.4#7cd2c10d2e9ea44015fdc2ab2d029c7695dac91a"
@@ -4054,6 +4069,22 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-nft-extrinsics"
+version = "3.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -7970,7 +8001,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.7.3",
+ "rand 0.3.23",
  "static_assertions",
 ]
 
