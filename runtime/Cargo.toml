@@ -55,6 +55,7 @@ orml-nft = {default-features = false, version = '0.4.1-dev', git = 'https://gith
 # local dependencies
 pallet-template = {default-features = false, version = '3.0.0', path = '../pallets/template'}
 pallet-exchange = {default-features = false, version = '3.0.0', path = '../pallets/exchange'}
+pallet-items = 		{default-features = false, version = '3.0.0', path = '../pallets/items'}
 
 [features]
 default = ['std']
@@ -82,11 +83,9 @@ std = [
 	'orml-traits/std',
 	'pallet-aura/std',
 	'pallet-balances/std',
-	# 'pallet-exchange/std',
 	'pallet-grandpa/std',
 	'pallet-randomness-collective-flip/std',
 	'pallet-sudo/std',
-	'pallet-template/std',
 	'pallet-timestamp/std',
 	'pallet-transaction-payment-rpc-runtime-api/std',
 	'pallet-transaction-payment/std',
@@ -101,4 +100,8 @@ std = [
 	'sp-std/std',
 	'sp-transaction-pool/std',
 	'sp-version/std',
+
+	# 'pallet-exchange/std',
+	'pallet-template/std',
+	'pallet-items/std',
 ]

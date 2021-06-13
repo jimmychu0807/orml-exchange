@@ -3739,6 +3739,7 @@ dependencies = [
  "pallet-balances",
  "pallet-exchange",
  "pallet-grandpa",
+ "pallet-items",
  "pallet-randomness-collective-flip",
  "pallet-sudo",
  "pallet-template",
@@ -4072,12 +4073,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-nft-extrinsics"
+name = "pallet-items"
 version = "3.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "orml-nft",
  "orml-traits",
  "pallet-balances",
  "parity-scale-codec",

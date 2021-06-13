@@ -331,7 +331,7 @@ impl pallet_exchange::Config for Runtime {
 	type Currency = Currencies;
 }
 
-// For nft development
+// For NFT development
 parameter_types! {
 	pub const MaxClassMetadata: u32  = items::MAX_CLASS_METADATA;
 	pub const MaxTokenMetadata: u32  = items::MAX_TOKEN_METADATA;
@@ -344,6 +344,10 @@ impl orml_nft::Config for Runtime {
 	type TokenData = items::ItemTokenData;
 	type MaxClassMetadata = MaxClassMetadata;
 	type MaxTokenMetadata = MaxTokenMetadata;
+}
+
+impl pallet_items::Config for Runtime {
+	type Event = Event;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -367,7 +371,8 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>},
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
-		Items: orml_nft::{Pallet, Storage, Config<T>},
+		Nft: orml_nft::{Pallet, Storage, Config<T>},
+		Items: pallet_items::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
