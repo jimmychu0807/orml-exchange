@@ -57,6 +57,8 @@
       "dexterity": "u64"
     },
 
+    "TokenData": "ItemTokenData",
+
     "MaxClassMetadata": 1024,
     "MaxTokenMetadata": 1024,
 

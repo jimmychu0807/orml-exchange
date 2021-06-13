@@ -2,7 +2,7 @@ use sp_core::{Pair, Public, sr25519};
 use node_template_runtime::{
 	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, TokensConfig,
 	SudoConfig, SystemConfig, WASM_BINARY, Signature, CurrencyId,
-	ItemsConfig, items
+	NftConfig, items
 };
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
@@ -158,7 +158,7 @@ fn testnet_genesis(
 			// Prefund with KSM
 			endowed_accounts: endowed_accounts.iter().cloned().map(|acc| (acc, CurrencyId::KSM, 1 << 60)).collect(),
 		},
-		orml_nft: ItemsConfig {
+		orml_nft: NftConfig {
 			tokens: items::items_genesis(&root_key)
 		}
 	}
