@@ -1,78 +1,66 @@
 {
-  "typesAlias": {
-    "tokens": {
-      "AccountData": {
-        "free": "Balance",
-        "reserved": "Balance",
-        "frozen": "Balance"
-      }
-    }
+  "AccountOf": "AccountId",
+
+  "CurrencyIdOf": "CurrencyId",
+
+  "CurrencyId": {
+    "_enum": ["Native", "DOT", "KSM", "BTC"]
   },
 
-  "types": {
-    "AccountOf": "AccountId",
+  "OrderStatus": {
+    "_enum": ["Pending", "Alive", "Executed", "Cancelled", "Invalid"]
+  },
 
-    "CurrencyIdOf": "CurrencyId",
+  "Order": {
+    "owner": "AccountId",
+    "from_cid": "CurrencyId",
+    "from_bal": "Balance",
+    "to_cid": "CurrencyId",
+    "to_bal": "Balance",
+    "status": "OrderStatus",
+    "executed_with": "Option<AccountId>",
+    "created_at": "BlockNumber",
+    "cancelled_at": "Option<BlockNumber>",
+    "executed_at": "Option<BlockNumber>"
+  },
 
-    "CurrencyId": {
-      "_enum": ["Native", "DOT", "KSM", "BTC"]
-    },
+  "OrderId": "u64",
 
-    "OrderStatus": {
-      "_enum": ["Pending", "Alive", "Executed", "Cancelled", "Invalid"]
-    },
+  "ClassId": "u64",
+  "TokenId": "u64",
 
-    "Order": {
-      "owner": "AccountId",
-      "from_cid": "CurrencyId",
-      "from_bal": "Balance",
-      "to_cid": "CurrencyId",
-      "to_bal": "Balance",
-      "status": "OrderStatus",
-      "executed_with": "Option<AccountId>",
-      "created_at": "BlockNumber",
-      "cancelled_at": "Option<BlockNumber>",
-      "executed_at": "Option<BlockNumber>"
-    },
+  "ItemType": {
+    "_enum": ["Weapon", "HeadGear", "Armor", "Shoe"]
+  },
 
-    "OrderId": "u64",
+  "ItemClassData": {
+    "item_type": "ItemType",
+    "info": "Vec<u8>"
+  },
 
-    "ClassId": "u64",
-    "TokenId": "u64",
+  "ItemTokenData": {
+    "name": "Vec<u8>",
+    "attack": "u64",
+    "defense": "u64",
+    "speed": "u64",
+    "dexterity": "u64"
+  },
 
-    "ItemType": {
-      "_enum": ["Weapon", "HeadGear", "Armor", "Shoe"]
-    },
+  "TokenData": "ItemTokenData",
 
-    "ItemClassData": {
-      "item_type": "ItemType",
-      "info": "Vec<u8>"
-    },
+  "MaxClassMetadata": 1024,
+  "MaxTokenMetadata": 1024,
 
-    "ItemTokenData": {
-      "name": "Vec<u8>",
-      "attack": "u64",
-      "defense": "u64",
-      "speed": "u64",
-      "dexterity": "u64"
-    },
+  "ClassInfoOf": {
+    "metadata": "BoundedVec<u8, MaxClassMetadata>",
+    "total_issuance": "TokenId",
+    "owner": "AccountId",
+    "data": "ItemClassData"
+  },
 
-    "TokenData": "ItemTokenData",
-
-    "MaxClassMetadata": 1024,
-    "MaxTokenMetadata": 1024,
-
-    "ClassInfoOf": {
-      "metadata": "BoundedVec<u8, MaxClassMetadata>",
-      "total_issuance": "TokenId",
-      "owner": "AccountId",
-      "data": "ItemClassData"
-    },
-
-    "TokenInfoOf": {
-      "metadata": "BoundedVec<u8, MaxTokenMetadata>",
-      "owner": "AccountId",
-      "data": "ItemTokenData"
-    }
+  "TokenInfoOf": {
+    "metadata": "BoundedVec<u8, MaxTokenMetadata>",
+    "owner": "AccountId",
+    "data": "ItemTokenData"
   }
 }
