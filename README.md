@@ -1,32 +1,30 @@
 # ORML 工作坊
 
-本工作坊对 [ORML](https://github.com/open-web3-stack/open-runtime-module-library) 作一个简单介绍。并且有两个示例展示如何把 ORML 篏入到自己的开发模块中，一个是多币种交易，另一个是 NFT 生成及转帐。
+本工作坊对 [ORML](https://github.com/open-web3-stack/open-runtime-module-library) 作一个简单介绍。并且有两个示例展示如何把 ORML 篏入到自己开发的模块中，一个是多币种交易，另一个是 NFT 生成及转帐。
 
-本工作坊改编自 [xlc/orml-workshop](https://github.com/xlc/orml-workshop)
+本工作坊改编自 [xlc/orml-workshop](https://github.com/xlc/orml-workshop)。
 
-## ORML 介绍
+## ORML (Open Runtime Module Library) 介绍
 
 由 Acala 主导及社区开发的开源项目。包含很多不同的组件，用户可因应不同场景，篏入不同组件来使用这些功能。包括：
 
 - `orml-currencies`: 提供多币种支持，以 `BasicCurrency` 及 `MultiCurrency` 的 trait.
 
-- `orml-tokens`: 把多币种与 用户帐号 (balance) 结合。
+- `orml-tokens`: 把多币种功能与用户帐号 (balance) 挂勾。相当于 Substrate 里 `pallet-balances` 一部份的功能应用到多币种上。
 
-- `orml-nft`: 提供了创建 NFT 及 NFT 转帐 的内部功能 (但没有外部接口)，外部接口 (extrinsics) 用户自己写。
+- `orml-nft`: 提供了创建 NFT 及 NFT 转帐 的内部功能，但没有外部接口 (extrinsics)。
 
-- `orml-oracle`: 也包含了 oracle 模块让营运者取得外界数据并写到链上。
+- `orml-oracle`: 包含了 oracle 模块功能让营运者取得外界数据并写到链上。
 
-好，我们具体看一下两个例子。
+我们具体看以下两个例子。
 
-## ORML 实例：多币种交易
+## ORML 篏入实例 1：多币种交易
 
 ### 引言
 
-如果要做一个 DEX。最简单的就是建立一个订单簿 (order book),不同用户提交一个订单信息，我愿意用 多少 X 币来买 Y 币. 而另一方看到，手持足够 Y 币，又想取得 X 币, 双方就成交。就这么简单。
+如果要做一个 DEX。最简单的就是建立一个订单簿 (order book),不同用户提交订单信息 (我愿意用 多少 X 币来买 Y 币)。 而另一用戶看到後，若手持足够 Y 币，想取得 X 币, 又對兌換率滿恴，双方就成交。就这么简单。
 
-主要是看基于 Substrate 实现这些的基本存储结构，及核心逻辑。
-
-Substrate [`pallet-balances`](https://substrate.dev/rustdocs/v3.0.0-monthly-2021-05/pallet_balances/index.html) 只支持单币种，所以我们需要扩展 pallet-balances 来使一个用户可与多币种帐户挂勾。
+現在 Substrate [`pallet-balances`](https://substrate.dev/rustdocs/v3.0.0-monthly-2021-05/pallet_balances/index.html) 只支持单币种，所以我们需要扩展 `pallet-balances` 来使用户可与多币种挂勾。
 
 ### 外部接口
 

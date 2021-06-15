@@ -38,9 +38,10 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		NotAuthorized,
 		MintItemError,
+		NotClassOwner,
 		NotItemOwner,
+		ClassNotExists
 	}
 
 	#[pallet::call]
@@ -53,11 +54,18 @@ pub mod pallet {
 			metadata: Vec<u8>,
 			data: TokenDataOf<T>,
 		) -> DispatchResult {
-			// ensure root
-			ensure_root(origin.clone()).map_err(|_| Error::<T>::NotAuthorized)?;
-
 			// To get the user
 			let who = ensure_signed(origin)?;
+
+			// CHECK: ensure this is called from the class owner
+			let class = orml_nft::Pallet::<T>::classes(cid)
+				.ok_or(Error::<T>::ClassNotExists)?;
+
+			if class.owner != who {
+				return Err(Error::<T>::NotClassOwner)?
+			}
+
+			// EXECUTE
 			let tid = orml_nft::Pallet::<T>::mint(&who, cid, metadata.clone(), data)
 				.map_err(|_| Error::<T>::MintItemError)?;
 

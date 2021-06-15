@@ -1,11 +1,11 @@
 {
   "AccountOf": "AccountId",
 
-  "CurrencyIdOf": "CurrencyId",
-
   "CurrencyId": {
     "_enum": ["Native", "DOT", "KSM", "BTC"]
   },
+
+  "CurrencyIdOf": "CurrencyId",
 
   "OrderStatus": {
     "_enum": ["Pending", "Alive", "Executed", "Cancelled", "Invalid"]
@@ -27,7 +27,9 @@
   "OrderId": "u64",
 
   "ClassId": "u64",
+  "ClassIdOf": "ClassId",
   "TokenId": "u64",
+  "TokenIdOf": "TokenId",
 
   "ItemType": {
     "_enum": ["Weapon", "HeadGear", "Armor", "Shoe"]
@@ -62,5 +64,9 @@
     "metadata": "BoundedVec<u8, MaxTokenMetadata>",
     "owner": "AccountId",
     "data": "ItemTokenData"
-  }
+  },
+
+  "ClassDataOf": "ItemClassData",
+  "TokenDataOf": "ItemTokenData"
+
 }
