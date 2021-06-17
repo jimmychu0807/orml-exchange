@@ -43,11 +43,9 @@ pub mod pallet {
 
 	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
 	pub enum OrderStatus {
-		Pending,
 		Alive,
 		Executed,
 		Cancelled,
-		Invalid,
 	}
 
 	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
@@ -225,7 +223,7 @@ pub mod pallet {
 			// CHECK: the order is indeed existed && status is either PENDING/ALIVE, if not return error.
 			<Orders::<T>>::try_mutate(&oid, |order_opt| {
 				if let Some(order) = order_opt {
-					if let OrderStatus::Pending | OrderStatus::Alive = order.status {
+					if let OrderStatus::Alive = order.status {
 						// DO: set the status of the order to cancelled
 						order.status = OrderStatus::Cancelled;
 						order.cancelled_at = Some(<frame_system::Pallet<T>>::block_number());
