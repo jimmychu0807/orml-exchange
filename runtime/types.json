@@ -8,7 +8,7 @@
   "CurrencyIdOf": "CurrencyId",
 
   "OrderStatus": {
-    "_enum": ["Pending", "Alive", "Executed", "Cancelled", "Invalid"]
+    "_enum": ["Alive", "Executed", "Cancelled"]
   },
 
   "Order": {
