@@ -6,9 +6,11 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::{Encode, Decode};
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
+use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
@@ -47,7 +49,7 @@ use orml_traits::parameter_type_with_key;
 /// Import the template pallet.
 pub use pallet_template;
 
-pub mod items;
+// pub mod items;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -77,8 +79,7 @@ pub type DigestItem = generic::DigestItem<Hash>;
 
 pub type Amount = i128;
 
-#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, PartialOrd, Ord, TypeInfo)]
 pub enum CurrencyId {
 	Native,
 	DOT,
@@ -301,60 +302,60 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
-parameter_type_with_key! {
-	pub ExistentialDeposits: |_id: CurrencyId| -> Balance {
-		Default::default()
-	};
-}
+// parameter_type_with_key! {
+// 	pub ExistentialDeposits: |_id: CurrencyId| -> Balance {
+// 		Default::default()
+// 	};
+// }
 
-impl orml_tokens::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = CurrencyId;
-	type ExistentialDeposits = ExistentialDeposits;
-	// TODO: investigate the proper OnDust setup
-	// type OnDust = orml_tokens::TransferDust<Runtime, Balance>;
-	type OnDust = ();
-	type MaxLocks = MaxLocks;
-	type WeightInfo = ();
-}
+// impl orml_tokens::Config for Runtime {
+// 	type Event = Event;
+// 	type Balance = Balance;
+// 	type Amount = Amount;
+// 	type CurrencyId = CurrencyId;
+// 	type ExistentialDeposits = ExistentialDeposits;
+// 	// TODO: investigate the proper OnDust setup
+// 	// type OnDust = orml_tokens::TransferDust<Runtime, Balance>;
+// 	type OnDust = ();
+// 	type MaxLocks = MaxLocks;
+// 	type WeightInfo = ();
+// }
 
-parameter_types! {
-	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Native;
-}
+// parameter_types! {
+// 	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Native;
+// }
 
-impl orml_currencies::Config for Runtime {
-	type Event = Event;
-	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-	type GetNativeCurrencyId = GetNativeCurrencyId;
-	type WeightInfo = ();
-}
+// impl orml_currencies::Config for Runtime {
+// 	type Event = Event;
+// 	type MultiCurrency = Tokens;
+// 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
+// 	type GetNativeCurrencyId = GetNativeCurrencyId;
+// 	type WeightInfo = ();
+// }
 
-impl pallet_exchange::Config for Runtime {
-	type Event = Event;
-	type Currency = Currencies;
-}
+// impl pallet_exchange::Config for Runtime {
+// 	type Event = Event;
+// 	type Currency = Currencies;
+// }
 
 // For NFT development
-parameter_types! {
-	pub const MaxClassMetadata: u32  = items::MAX_CLASS_METADATA;
-	pub const MaxTokenMetadata: u32  = items::MAX_TOKEN_METADATA;
-}
+// parameter_types! {
+// 	pub const MaxClassMetadata: u32  = items::MAX_CLASS_METADATA;
+// 	pub const MaxTokenMetadata: u32  = items::MAX_TOKEN_METADATA;
+// }
 
-impl orml_nft::Config for Runtime {
-	type ClassId = u64;
-	type TokenId = u64;
-	type ClassData = items::ItemClassData;
-	type TokenData = items::ItemTokenData;
-	type MaxClassMetadata = MaxClassMetadata;
-	type MaxTokenMetadata = MaxTokenMetadata;
-}
+// impl orml_nft::Config for Runtime {
+// 	type ClassId = u64;
+// 	type TokenId = u64;
+// 	type ClassData = items::ItemClassData;
+// 	type TokenData = items::ItemTokenData;
+// 	type MaxClassMetadata = MaxClassMetadata;
+// 	type MaxTokenMetadata = MaxTokenMetadata;
+// }
 
-impl pallet_items::Config for Runtime {
-	type Event = Event;
-}
+// impl pallet_items::Config for Runtime {
+// 	type Event = Event;
+// }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -374,11 +375,11 @@ construct_runtime!(
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 
-		Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>},
-		Currencies: orml_currencies::{Pallet, Call, Event<T>},
-		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
-		Nft: orml_nft::{Pallet, Storage, Config<T>},
-		Items: pallet_items::{Pallet, Call, Storage, Event<T>},
+		// Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>},
+		// Currencies: orml_currencies::{Pallet, Call, Event<T>},
+		// Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
+		// Nft: orml_nft::{Pallet, Storage, Config<T>},
+		// Items: pallet_items::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
