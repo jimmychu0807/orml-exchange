@@ -18,7 +18,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature,
+	ApplyExtrinsicResult, MultiSignature, RuntimeDebug,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -28,7 +28,7 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{KeyOwnerProofSystem, Randomness, StorageInfo},
+	traits::{KeyOwnerProofSystem, Randomness, StorageInfo, Contains},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -79,7 +79,7 @@ pub type DigestItem = generic::DigestItem<Hash>;
 
 pub type Amount = i128;
 
-#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, PartialOrd, Ord, TypeInfo)]
+#[derive(Encode, Decode, RuntimeDebug, Eq, PartialEq, Copy, Clone, PartialOrd, Ord, TypeInfo)]
 pub enum CurrencyId {
 	Native,
 	DOT,
@@ -302,41 +302,47 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
-// parameter_type_with_key! {
-// 	pub ExistentialDeposits: |_id: CurrencyId| -> Balance {
-// 		Default::default()
-// 	};
-// }
+parameter_type_with_key! {
+	pub ExistentialDeposits: |_id: CurrencyId| -> Balance {
+		Default::default()
+	};
+}
 
-// impl orml_tokens::Config for Runtime {
-// 	type Event = Event;
-// 	type Balance = Balance;
-// 	type Amount = Amount;
-// 	type CurrencyId = CurrencyId;
-// 	type ExistentialDeposits = ExistentialDeposits;
-// 	// TODO: investigate the proper OnDust setup
-// 	// type OnDust = orml_tokens::TransferDust<Runtime, Balance>;
-// 	type OnDust = ();
-// 	type MaxLocks = MaxLocks;
-// 	type WeightInfo = ();
-// }
+pub struct NullDustRemovalWhitelist;
+impl Contains<AccountId> for NullDustRemovalWhitelist {
+	fn contains(a: &AccountId) -> bool {
+		false
+	}
+}
 
-// parameter_types! {
-// 	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Native;
-// }
+impl orml_tokens::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = CurrencyId;
+	type ExistentialDeposits = ExistentialDeposits;
+	type OnDust = ();
+	type DustRemovalWhitelist = NullDustRemovalWhitelist;
+	type MaxLocks = MaxLocks;
+	type WeightInfo = ();
+}
 
-// impl orml_currencies::Config for Runtime {
-// 	type Event = Event;
-// 	type MultiCurrency = Tokens;
-// 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-// 	type GetNativeCurrencyId = GetNativeCurrencyId;
-// 	type WeightInfo = ();
-// }
+parameter_types! {
+	pub const GetNativeCurrencyId: CurrencyId = CurrencyId::Native;
+}
 
-// impl pallet_exchange::Config for Runtime {
-// 	type Event = Event;
-// 	type Currency = Currencies;
-// }
+impl orml_currencies::Config for Runtime {
+	type Event = Event;
+	type MultiCurrency = Tokens;
+	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
+	type GetNativeCurrencyId = GetNativeCurrencyId;
+	type WeightInfo = ();
+}
+
+impl pallet_exchange::Config for Runtime {
+	type Event = Event;
+	type Currency = Currencies;
+}
 
 // For NFT development
 // parameter_types! {
@@ -375,9 +381,9 @@ construct_runtime!(
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 
-		// Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>},
-		// Currencies: orml_currencies::{Pallet, Call, Event<T>},
-		// Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
+		Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>},
+		Currencies: orml_currencies::{Pallet, Call, Event<T>},
+		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		// Nft: orml_nft::{Pallet, Storage, Config<T>},
 		// Items: pallet_items::{Pallet, Call, Storage, Event<T>},
 	}
