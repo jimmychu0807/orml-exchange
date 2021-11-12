@@ -6,6 +6,9 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
+
 use codec::{Encode, Decode};
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
@@ -80,6 +83,7 @@ pub type DigestItem = generic::DigestItem<Hash>;
 pub type Amount = i128;
 
 #[derive(Encode, Decode, RuntimeDebug, Eq, PartialEq, Copy, Clone, PartialOrd, Ord, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum CurrencyId {
 	Native,
 	DOT,
@@ -310,7 +314,7 @@ parameter_type_with_key! {
 
 pub struct NullDustRemovalWhitelist;
 impl Contains<AccountId> for NullDustRemovalWhitelist {
-	fn contains(a: &AccountId) -> bool {
+	fn contains(_a: &AccountId) -> bool {
 		false
 	}
 }
