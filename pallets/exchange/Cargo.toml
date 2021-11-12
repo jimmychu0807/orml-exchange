@@ -23,13 +23,13 @@ frame-benchmarking = {default-features = false, optional = true, version = '4.0.
 frame-support = {default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-10'}
 frame-system = {default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-10'}
 pallet-balances = { default-features = false, version = "4.0.0-dev", git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-10' }
+sp-io = {default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-10'}
 
 # orml-related
 orml-traits = {default-features = false, version = "0.4.1-dev", git = 'https://github.com/open-web3-stack/open-runtime-module-library.git', branch = 'release-2.0.0' }
 
 [dev-dependencies]
 sp-core = {default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-10'}
-sp-io = {default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-10'}
 sp-runtime = {default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-10'}
 
 # orml dependencies
