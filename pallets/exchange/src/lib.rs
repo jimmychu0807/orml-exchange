@@ -6,9 +6,6 @@
 
 pub use pallet::*;
 
-#[cfg(test)]
-mod tests;
-
 #[frame_support::pallet]
 pub mod pallet {
 	use frame_support::{
@@ -22,6 +19,7 @@ pub mod pallet {
 		MultiCurrency, MultiReservableCurrency, BalanceStatus,
 		arithmetic::Zero,
 	};
+	use scale_info::TypeInfo;
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
@@ -41,14 +39,15 @@ pub mod pallet {
 	type CurrencyIdOf<T> = <<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::CurrencyId;
 	type BalanceOf<T> = <<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
 
-	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
+	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode, TypeInfo)]
 	pub enum OrderStatus {
 		Alive,
 		Executed,
 		Cancelled,
 	}
 
-	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
+	#[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode, TypeInfo)]
+	#[scale_info(skip_type_params(T))]
 	pub struct Order<T: Config> {
 		pub owner:      T::AccountId,
 		pub from_cid:   CurrencyIdOf<T>,
@@ -102,7 +101,6 @@ pub mod pallet {
 	// Pallets use events to inform users when important changes are made.
 	// https://substrate.dev/docs/en/knowledgebase/runtime/events
 	#[pallet::event]
-	#[pallet::metadata(T::AccountId = "AccountId")]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		OrderSubmitted(T::AccountId, CurrencyIdOf<T>, BalanceOf<T>, CurrencyIdOf<T>, BalanceOf<T>),
