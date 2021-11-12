@@ -17,6 +17,16 @@ default-features = false
 path = '../pallets/template'
 version = '3.0.0-monthly-2021-10'
 
+[dependencies.pallet-exchange]
+default-features = false
+path = '../pallets/exchange'
+version = '3.0.0-monthly-2021-10'
+
+[dependencies.pallet-items]
+default-features = false
+path = '../pallets/items'
+version = '3.0.0-monthly-2021-10'
+
 [build-dependencies.substrate-wasm-builder]
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-10'
@@ -211,6 +221,8 @@ std = [
     'frame-system/std',
     'pallet-aura/std',
     'pallet-balances/std',
+    'pallet-exchange/std',
+    'pallet-items/std',
     'pallet-grandpa/std',
     'pallet-randomness-collective-flip/std',
     'pallet-sudo/std',
